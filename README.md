@@ -15,7 +15,8 @@ This repository provides the code for evaluating GoV on two distinct tasks: Numb
 │   ├── generate\_problems.py
 │   ├── NTS\_baseline.py
 │   └── NTS\_GoV.py
-│
+│   └── analyze\_results.py
+|
 ├── ProcessBench/
 │   ├── data\_download.py
 │   ├── processbench\_baseline.py

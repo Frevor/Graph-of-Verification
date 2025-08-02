@@ -76,7 +76,7 @@ This framework navigates a two-dimensional design space:
     ```env
     OPENAI_API_KEY="YOUR_OPENAI_API_KEY_HERE"
 
-    # [cite_start]Optional: If using a custom endpoint, specify the base URL [cite: 4, 5]
+    # Optional: If using a custom endpoint, specify the base URL
     OPENAI_API_BASE="YOUR_OPTIONAL_API_BASE_URL_HERE"
     ```
 

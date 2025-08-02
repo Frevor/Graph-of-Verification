@@ -1,89 +1,151 @@
-# Graph-of-Verification
+# Graph-of-Verification (GoV)
 
-This repository contains the official implementation for the paper: [Graph-of-Verification: A Step-by-Step Verification Method for Large Language Models](https://arxiv.org/abs/2506.12509).
+This repository is the official implementation for the paper: **Graph of Verification: Structured Verification of LLM Reasoning with Directed Acyclic Graphs** ([arXiv:2506.12509](https://arxiv.org/abs/2506.12509)).
 
-Graph-of-Verification (GoV) is a novel, systematic step-by-step verification method that enhances the reasoning and error-detection capabilities of Large Language Models (LLMs). By structuring the verification process as a graph, GoV enables LLMs to meticulously review each step of a given solution, identify errors, and provide corrected reasoning paths.
+[](https://arxiv.org/abs/2506.12509)
 
-This repository provides the code for evaluating GoV on two distinct tasks: Number Triangle Summation (NTS) and ProcessBench.
+[cite\_start]*Both humans and GoV validate reasoning by decomposing it into a directed acyclic graph, allowing for flexible verification granularity adapted to different tasks[cite: 30, 31].*
+
+## Abstract
+
+[cite\_start]Verifying the complex, multi-step reasoning of Large Language Models (LLMs) is a critical challenge, as holistic methods often overlook localized flaws[cite: 11]. [cite\_start]To address this, we propose the **Graph of Verification (GoV)**, a novel, training-free framework that enhances the reasoning and error-detection capabilities of LLMs[cite: 14, 328]. [cite\_start]GoV models the verification process as a Directed Acyclic Graph (DAG) and introduces a flexible node block architecture[cite: 15, 39]. [cite\_start]This allows GoV to adapt its verification granularity—from atomic steps in formal proofs to entire paragraphs in natural language narratives—to match the native structure of the reasoning process[cite: 16]. [cite\_start]Our experiments show that GoV significantly outperforms both holistic baselines and other state-of-the-art methods, establishing a new standard for training-free reasoning verification[cite: 19].
+
+## How GoV Works
+
+[cite\_start]GoV operationalizes structured validation through a four-stage pipeline that models reasoning as a Directed Acyclic Graph (DAG)[cite: 142].
+
+[cite\_start]*Figure: The GoV Four-Stage Verification Pipeline[cite: 142].*
+
+1.  [cite\_start]**DAG Construction**: The raw reasoning process is modeled as a DAG, where nodes represent individual steps (premises, conclusions) and edges represent logical dependencies[cite: 81, 163, 168].
+2.  [cite\_start]**Topological Sorting**: A topological sort of the graph enforces causal consistency, ensuring that premises are always verified before the conclusions that depend on them[cite: 143].
+3.  [cite\_start]**Sequential Verification**: An LLM assesses each reasoning unit (an atomic node or a block of nodes) in the sorted order, using previously validated steps as context[cite: 144].
+4.  **Verification Outcome**: The process terminates at the first detected error, enabling precise fault localization. [cite\_start]A reasoning chain is only considered valid if all its units are verified as correct[cite: 145].
+
+This framework navigates a two-dimensional design space:
+
+  * [cite\_start]**Verification Granularity**: The scale of the unit being verified, from fine-grained `Atomic Nodes` (e.g., a single equation) for precision to coarse-grained `Node Blocks` (e.g., a paragraph) for robustness[cite: 78, 181].
+  * [cite\_start]**Contextual Scope**: The amount of prior information provided, from `Minimal Context` (only direct premises) to `Inclusive Context` (all previously verified steps)[cite: 148].
 
 ## Repository Structure
 
 ```
-
 .
 ├── Number Triangle Summation/
-│   ├── generate\_problems.py
-│   ├── NTS\_baseline.py
-│   └── NTS\_GoV.py
-│   └── analyze\_results.py
+│   ├── generate_problems.py      # Generates NTS datasets
+│   ├── NTS_baseline.py           # Runs holistic baseline verification on NTS
+│   ├── NTS_GoV.py                # Runs GoV (atomic-level) verification on NTS
+│   └── analyze_results.py        # Compares baseline and GoV results and plots F1 scores
 |
 ├── ProcessBench/
-│   ├── data\_download.py
-│   ├── processbench\_baseline.py
-│   └── processbench\_GoV.py
+│   ├── data_download.py          # Downloads and prepares the ProcessBench (GSM8K) dataset
+│   ├── processbench_baseline.py  # Runs holistic baseline verification on ProcessBench
+│   └── processbench_GoV.py       # Runs GoV (block-level) verification on ProcessBench
 │
-├── .env.example
+├── .env.example                  # Example environment file for API keys
+├── requirements.txt              # Python package dependencies
 └── README.md
+```
 
-````
+## Setup and Installation
 
-## Running the Scripts
+1.  **Clone the repository:**
 
-The general workflow for both tasks is to first run the data acquisition/generation script, followed by either the `baseline` or `GoV` (Generation of Verification) evaluation script.
+    ```bash
+    git clone https://github.com/your-username/Graph-of-Verification.git
+    cd Graph-of-Verification
+    ```
 
-### 1. Number Triangle Summation
+2.  **Install dependencies:**
+    Create a virtual environment and install the required packages.
 
-This task involves generating "digital triangle" math problems and then evaluating an LLM's ability to find errors in their solutions.
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+    pip install -r requirements.txt
+    ```
 
-* **Step 1: Generate Problems**
-    Run `generate_problems.py` to create the dataset for this task. This will typically output a CSV file (e.g., `number_triangle_problems.csv`).
+3.  **Configure Environment Variables:**
+    Create a `.env` file by copying the example file:
+
+    ```bash
+    cp .env.example .env
+    ```
+
+    [cite\_start]Open the `.env` file and add your API key[cite: 2, 3]:
+
+    ```env
+    OPENAI_API_KEY="YOUR_OPENAI_API_KEY_HERE"
+
+    # [cite_start]Optional: If using a custom endpoint, specify the base URL [cite: 4, 5]
+    OPENAI_API_BASE="YOUR_OPTIONAL_API_BASE_URL_HERE"
+    ```
+
+    > **Note**: The LLM model name (e.g., `Qwen2.5-72B-Instruct`) is hardcoded in the Python scripts. To use a different model, you must modify the `MODEL_NAME` variable inside each script.
+
+## Running the Experiments
+
+The experiments are divided into two main tasks that showcase GoV's versatility.
+
+### Experiment 1: Number Triangle Summation (Well-Structured Task)
+
+[cite\_start]This task evaluates GoV's precision on a formal arithmetic task with an unambiguous dependency graph[cite: 244, 245]. [cite\_start]GoV is configured with **Atomic Granularity**, treating each addition as a single verification node[cite: 259].
+
+  * **Step 1: Generate Problems**
+    Create the datasets for N = 2, 4, 6, and 8.
+
     ```bash
     python "Number Triangle Summation/generate_problems.py"
     ```
 
-* **Step 2: Run Evaluation**
-    After generating the problems, you can run either the baseline evaluation or the GoV evaluation:
-    * For baseline evaluation:
-        ```bash
-        python "Number Triangle Summation/NTS_baseline.py"
-        ```
-    * For GoV evaluation:
-        ```bash
-        python "Number Triangle Summation/NTS_GoV.py"
-        ```
-    These scripts will process the generated data and produce output files with the LLM's analysis.
+  * **Step 2: Run GoV & Baseline Evaluation**
+    Execute the evaluation scripts. They will process the generated files and produce new CSVs with verification results.
 
-### 2. ProcessBench
+    ```bash
+    # Run GoV (step-by-step verification)
+    python "Number Triangle Summation/NTS_GoV.py"
 
-This task evaluates LLM performance on the ProcessBench dataset (likely a version of GSM8K or similar mathematical reasoning problems).
+    # Run Baseline (holistic verification)
+    python "Number Triangle Summation/NTS_baseline.py"
+    ```
 
-* **Step 1: Download/Prepare Data**
-    Run `data_download.py` to obtain or prepare the necessary dataset for ProcessBench. Ensure this script places the data where the evaluation scripts expect it (e.g., `gsm8k.csv`).
+  * **Step 3: Analyze Results**
+    Compare the performance of the two methods and generate a performance plot.
+
+    ```bash
+    python "Number Triangle Summation/analyze_results.py"
+    ```
+
+    This will save a summary CSV and a PNG plot comparing the F1 scores.
+
+### Experiment 2: ProcessBench (Loosely-Structured Task)
+
+[cite\_start]This task evaluates GoV's robustness on mathematical reasoning problems expressed in natural language[cite: 291]. [cite\_start]GoV is configured with **Block Granularity** and **Inclusive Context**, treating each paragraph as a node block and providing all previously verified paragraphs as context[cite: 303, 305].
+
+  * **Step 1: Download and Prepare Data**
+    This script downloads the `gsm8k` split from the `Qwen/ProcessBench` dataset on Hugging Face and prepares it.
+
     ```bash
     python ProcessBench/data_download.py
     ```
 
-* **Step 2: Run Evaluation**
-    Once the data is ready, run either the baseline or GoV evaluation scripts:
-    * For baseline evaluation:
-        ```bash
-        python ProcessBench/processbench_baseline.py
-        ```
-    * For GoV evaluation:
-        ```bash
-        python ProcessBench/processbench_GoV.py
-        ```
-    These scripts will output CSV files containing the results of the LLM's processing.
+    This will create the `gsm8k.csv` file in the `ProcessBench` directory.
 
-## Important Notes
+  * **Step 2: Run GoV & Baseline Evaluation**
+    Run the scripts to get verification results for the ProcessBench dataset.
 
-* **Model Name**: The specific LLM model used (`MODEL_NAME`) is defined within each script. If you wish to use a different model, you will need to update this variable in the respective Python files.
-* **Output Files**: The evaluation scripts will generate output files (usually CSVs) in their respective directories or as defined within the scripts.
+    ```bash
+    # Run GoV (paragraph-by-paragraph verification)
+    python ProcessBench/processbench_GoV.py
 
-## CITATION
+    # Run Baseline (holistic verification)
+    python ProcessBench/processbench_baseline.py
+    ```
 
-If you find our work useful, please consider citing our paper:
+    The scripts will generate output CSVs (e.g., `gsm8k_qwen2.5-32b_gov.csv`) containing the detailed verification results.
 
+## Citation
+
+If you find our work useful for your research, please consider citing our paper:
 
 ```bibtex
 @misc{fang2025graphverificationstructuredverification,
@@ -95,3 +157,4 @@ If you find our work useful, please consider citing our paper:
       primaryClass={cs.AI},
       url={https://arxiv.org/abs/2506.12509}, 
 }
+```

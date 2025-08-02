@@ -4,27 +4,27 @@ This repository is the official implementation for the paper: **Graph of Verific
 
 [](https://arxiv.org/abs/2506.12509)
 
-[cite\_start]*Both humans and GoV validate reasoning by decomposing it into a directed acyclic graph, allowing for flexible verification granularity adapted to different tasks[cite: 30, 31].*
+Both humans and GoV validate reasoning by decomposing it into a directed acyclic graph, allowing for flexible verification granularity adapted to different tasks.
 
 ## Abstract
 
-[cite\_start]Verifying the complex, multi-step reasoning of Large Language Models (LLMs) is a critical challenge, as holistic methods often overlook localized flaws[cite: 11]. [cite\_start]To address this, we propose the **Graph of Verification (GoV)**, a novel, training-free framework that enhances the reasoning and error-detection capabilities of LLMs[cite: 14, 328]. [cite\_start]GoV models the verification process as a Directed Acyclic Graph (DAG) and introduces a flexible node block architecture[cite: 15, 39]. [cite\_start]This allows GoV to adapt its verification granularity—from atomic steps in formal proofs to entire paragraphs in natural language narratives—to match the native structure of the reasoning process[cite: 16]. [cite\_start]Our experiments show that GoV significantly outperforms both holistic baselines and other state-of-the-art methods, establishing a new standard for training-free reasoning verification[cite: 19].
+Verifying the complex, multi-step reasoning of Large Language Models (LLMs) is a critical challenge, as holistic methods often overlook localized flaws. To address this, we propose the **Graph of Verification (GoV)**, a novel, training-free framework that enhances the reasoning and error-detection capabilities of LLMs. GoV models the verification process as a Directed Acyclic Graph (DAG) and introduces a flexible node block architecture. This allows GoV to adapt its verification granularity—from atomic steps in formal proofs to entire paragraphs in natural language narratives—to match the native structure of the reasoning process]. Our experiments show that GoV significantly outperforms both holistic baselines and other state-of-the-art methods, establishing a new standard for training-free reasoning verification.
 
 ## How GoV Works
 
-[cite\_start]GoV operationalizes structured validation through a four-stage pipeline that models reasoning as a Directed Acyclic Graph (DAG)[cite: 142].
+GoV operationalizes structured validation through a four-stage pipeline that models reasoning as a Directed Acyclic Graph (DAG).
 
-[cite\_start]*Figure: The GoV Four-Stage Verification Pipeline[cite: 142].*
+Figure: The GoV Four-Stage Verification Pipeline.
 
-1.  [cite\_start]**DAG Construction**: The raw reasoning process is modeled as a DAG, where nodes represent individual steps (premises, conclusions) and edges represent logical dependencies[cite: 81, 163, 168].
-2.  [cite\_start]**Topological Sorting**: A topological sort of the graph enforces causal consistency, ensuring that premises are always verified before the conclusions that depend on them[cite: 143].
-3.  [cite\_start]**Sequential Verification**: An LLM assesses each reasoning unit (an atomic node or a block of nodes) in the sorted order, using previously validated steps as context[cite: 144].
-4.  **Verification Outcome**: The process terminates at the first detected error, enabling precise fault localization. [cite\_start]A reasoning chain is only considered valid if all its units are verified as correct[cite: 145].
+1.  **DAG Construction**: The raw reasoning process is modeled as a DAG, where nodes represent individual steps (premises, conclusions) and edges represent logical dependencies.
+2.  **Topological Sorting**: A topological sort of the graph enforces causal consistency, ensuring that premises are always verified before the conclusions that depend on them.
+3.  **Sequential Verification**: An LLM assesses each reasoning unit (an atomic node or a block of nodes) in the sorted order, using previously validated steps as context.
+4.  **Verification Outcome**: The process terminates at the first detected error, enabling precise fault localization. A reasoning chain is only considered valid if all its units are verified as correct.
 
 This framework navigates a two-dimensional design space:
 
-  * [cite\_start]**Verification Granularity**: The scale of the unit being verified, from fine-grained `Atomic Nodes` (e.g., a single equation) for precision to coarse-grained `Node Blocks` (e.g., a paragraph) for robustness[cite: 78, 181].
-  * [cite\_start]**Contextual Scope**: The amount of prior information provided, from `Minimal Context` (only direct premises) to `Inclusive Context` (all previously verified steps)[cite: 148].
+  * **Verification Granularity**: The scale of the unit being verified, from fine-grained `Atomic Nodes` (e.g., a single equation) for precision to coarse-grained `Node Blocks` (e.g., a paragraph) for robustness.
+  * **Contextual Scope**: The amount of prior information provided, from `Minimal Context` (only direct premises) to `Inclusive Context` (all previously verified steps).
 
 ## Repository Structure
 
@@ -71,7 +71,7 @@ This framework navigates a two-dimensional design space:
     cp .env.example .env
     ```
 
-    [cite\_start]Open the `.env` file and add your API key[cite: 2, 3]:
+    Open the `.env` file and add your API key:
 
     ```env
     OPENAI_API_KEY="YOUR_OPENAI_API_KEY_HERE"
@@ -88,7 +88,7 @@ The experiments are divided into two main tasks that showcase GoV's versatility.
 
 ### Experiment 1: Number Triangle Summation (Well-Structured Task)
 
-[cite\_start]This task evaluates GoV's precision on a formal arithmetic task with an unambiguous dependency graph[cite: 244, 245]. [cite\_start]GoV is configured with **Atomic Granularity**, treating each addition as a single verification node[cite: 259].
+This task evaluates GoV's precision on a formal arithmetic task with an unambiguous dependency graph. GoV is configured with **Atomic Granularity**, treating each addition as a single verification node.
 
   * **Step 1: Generate Problems**
     Create the datasets for N = 2, 4, 6, and 8.
@@ -119,7 +119,7 @@ The experiments are divided into two main tasks that showcase GoV's versatility.
 
 ### Experiment 2: ProcessBench (Loosely-Structured Task)
 
-[cite\_start]This task evaluates GoV's robustness on mathematical reasoning problems expressed in natural language[cite: 291]. [cite\_start]GoV is configured with **Block Granularity** and **Inclusive Context**, treating each paragraph as a node block and providing all previously verified paragraphs as context[cite: 303, 305].
+This task evaluates GoV's robustness on mathematical reasoning problems expressed in natural language. GoV is configured with **Block Granularity** and **Inclusive Context**, treating each paragraph as a node block and providing all previously verified paragraphs as context.
 
   * **Step 1: Download and Prepare Data**
     This script downloads the `gsm8k` split from the `Qwen/ProcessBench` dataset on Hugging Face and prepares it.
